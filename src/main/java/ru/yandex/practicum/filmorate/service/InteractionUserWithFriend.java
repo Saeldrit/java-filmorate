@@ -1,8 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.InvalidValueForEqualsException;
@@ -10,20 +9,15 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.abstraction.AbstractFabricUserRepository;
 import ru.yandex.practicum.filmorate.service.projection.InteractionServiceWithFriendInterface;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class InteractionUserWithFriend implements InteractionServiceWithFriendInterface {
 
-	private final AbstractFabricUserRepository<Integer, User> repository;
-
-	@Autowired
-	public InteractionUserWithFriend(
-			@Qualifier("userRepositoryDB")
-			AbstractFabricUserRepository<Integer, User> repository) {
-		this.repository = repository;
-	}
+	private final AbstractFabricUserRepository<Integer, User> userRepositoryDB;
 
 	@Override
 	public User addToFriend(Integer id, Integer friendId) {
@@ -34,7 +28,7 @@ public class InteractionUserWithFriend implements InteractionServiceWithFriendIn
 
 		log.info("addToFriend() USER ID '{}', FRIEND ID '{}'", id, friendId);
 
-		return repository.addTo(id, friendId);
+		return userRepositoryDB.addTo(id, friendId);
 	}
 
 	@Override
@@ -45,9 +39,9 @@ public class InteractionUserWithFriend implements InteractionServiceWithFriendIn
 		throwNewEntityNotFoundException(friendId);
 
 		log.info("removeFriend() USER ID '{}', FRIEND ID '{}'", id, friendId);
-		User userDeletedFriend = repository.removeFrom(id, friendId);
+		User userDeletedFriend = userRepositoryDB.removeFrom(id, friendId);
 
-		repository.removeFrom(friendId, id);
+		userRepositoryDB.removeFrom(friendId, id);
 		return userDeletedFriend;
 	}
 
@@ -57,8 +51,8 @@ public class InteractionUserWithFriend implements InteractionServiceWithFriendIn
 
 		log.info("returnAllFriends() USER ID '{}'", id);
 
-		User user = repository.findById(id);
-		return new ArrayList<>(repository.returnFriendsByUser(user));
+		User user = userRepositoryDB.findById(id);
+		return new ArrayList<>(userRepositoryDB.returnFriendsByUser(user));
 	}
 
 	@Override
@@ -68,7 +62,7 @@ public class InteractionUserWithFriend implements InteractionServiceWithFriendIn
 		throwNewEntityNotFoundException(id);
 		throwNewEntityNotFoundException(friendId);
 
-		return new ArrayList<>(repository.returnCommonFriends(id, friendId));
+		return new ArrayList<>(userRepositoryDB.returnCommonFriends(id, friendId));
 	}
 
 	private void ifIdsAreEqualsThrowNewException(Integer id, Integer friendId) {
@@ -83,7 +77,7 @@ public class InteractionUserWithFriend implements InteractionServiceWithFriendIn
 		if (id == null) {
 			throw new EntityNotFoundException("User id is null");
 		}
-		if (repository.findById(id) == null) {
+		if (userRepositoryDB.findById(id) == null) {
 			throw new EntityNotFoundException("User not found by id " + id);
 		}
 	}

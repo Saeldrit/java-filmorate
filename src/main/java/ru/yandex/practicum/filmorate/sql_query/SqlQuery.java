@@ -13,8 +13,6 @@ public interface SqlQuery {
 
 	String like();
 
-	String dropTable();
-
 	default String removeLike() {
 		return "";
 	}

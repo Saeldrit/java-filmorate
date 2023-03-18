@@ -33,9 +33,6 @@ public class SqlFilmQuery implements SqlQuery {
 	@Value("${film.insert-genre-film-id}")
 	private String insertGenreFilmId;
 
-	@Value("${film.drop-table}")
-	private String dropTable;
-
 	@Value("${film.insert-mpa}")
 	private String initMpa;
 
@@ -103,11 +100,6 @@ public class SqlFilmQuery implements SqlQuery {
 	@Override
 	public String insertGenreFilmId() {
 		return insertGenreFilmId;
-	}
-
-	@Override
-	public String dropTable() {
-		return dropTable;
 	}
 
 	@Override

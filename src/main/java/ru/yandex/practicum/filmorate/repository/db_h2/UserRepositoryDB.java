@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.repository.db_h2;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.abstraction.AbstractFabricUserRepository;
 import ru.yandex.practicum.filmorate.sql_query.SqlQuery;
-import ru.yandex.practicum.filmorate.sql_query.SqlUserQuery;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,18 +19,11 @@ import static java.sql.Date.valueOf;
 import static java.util.Objects.requireNonNull;
 
 @Repository
+@RequiredArgsConstructor
 public class UserRepositoryDB extends AbstractFabricUserRepository<Integer, User> {
 
-	private final SqlQuery sqlQuery;
-
+	private final SqlQuery userQuery;
 	private final JdbcTemplate jdbcTemplate;
-
-	@Autowired
-	public UserRepositoryDB(@Qualifier("userQuery") SqlUserQuery sqlQuery,
-							JdbcTemplate jdbcTemplate) {
-		this.sqlQuery = sqlQuery;
-		this.jdbcTemplate = jdbcTemplate;
-	}
 
 	@Override
 	public User save(User user) {
@@ -41,7 +32,7 @@ public class UserRepositoryDB extends AbstractFabricUserRepository<Integer, User
 
 		jdbcTemplate.update(connection -> {
 			PreparedStatement ps = connection.prepareStatement(
-					sqlQuery.insert(),
+					userQuery.insert(),
 					new String[]{"id"});
 			ps.setString(1, (usWithName.getEmail()));
 			ps.setString(2, usWithName.getLogin());
@@ -59,7 +50,7 @@ public class UserRepositoryDB extends AbstractFabricUserRepository<Integer, User
 	public Collection<User> bringBackAllValues() {
 		Map<Integer, User> userMap = new HashMap<>();
 
-		jdbcTemplate.query(sqlQuery.selectAllValues(), rs -> {
+		jdbcTemplate.query(userQuery.selectAllValues(), rs -> {
 			int id = rs.getInt("id");
 
 			User user = userMap.get(id);
@@ -75,7 +66,7 @@ public class UserRepositoryDB extends AbstractFabricUserRepository<Integer, User
 
 	@Override
 	public User findById(Integer id) {
-		return jdbcTemplate.query(sqlQuery.selectById(), new Object[]{id}, rs -> {
+		return jdbcTemplate.query(userQuery.selectById(), new Object[]{id}, rs -> {
 			User user = null;
 
 			if (rs.next()) {
@@ -90,14 +81,14 @@ public class UserRepositoryDB extends AbstractFabricUserRepository<Integer, User
 		User user = findById(id);
 
 		if (user != null) {
-			jdbcTemplate.update(sqlQuery.deleteById(), id);
+			jdbcTemplate.update(userQuery.deleteById(), id);
 		}
 		return user;
 	}
 
 	@Override
 	public User update(User entity) {
-		jdbcTemplate.update(sqlQuery.update()
+		jdbcTemplate.update(userQuery.update()
 				, entity.getEmail()
 				, entity.getName()
 				, entity.getLogin()
@@ -107,14 +98,9 @@ public class UserRepositoryDB extends AbstractFabricUserRepository<Integer, User
 	}
 
 	@Override
-	public void cleaner() {
-		jdbcTemplate.update(sqlQuery.dropTable());
-	}
-
-	@Override
 	public Collection<User> returnFriendsByUser(User user) {
 		SqlRowSet set = jdbcTemplate.queryForRowSet(
-				sqlQuery.returnFriendsByUserId(),
+				userQuery.returnFriendsByUserId(),
 				user.getId());
 
 		List<User> userList = new ArrayList<>();
@@ -145,19 +131,19 @@ public class UserRepositoryDB extends AbstractFabricUserRepository<Integer, User
 
 	@Override
 	public Collection<User> returnCommonFriends(Integer userId, Integer friendId) {
-		return jdbcTemplate.query(sqlQuery.mutualFriends(),
+		return jdbcTemplate.query(userQuery.mutualFriends(),
 				new Object[]{userId, friendId},
 				(rs, rowNum) -> collectUser(rs));
 	}
 
 	private int addFriend(Integer userId, Integer friendId) {
 		return jdbcTemplate.update(
-				sqlQuery.addFriend(), userId, friendId);
+				userQuery.addFriend(), userId, friendId);
 	}
 
 	private int removeFriend(Integer userId, Integer friendId) {
 		return jdbcTemplate.update(
-				sqlQuery.removeFriend(), userId, friendId);
+				userQuery.removeFriend(), userId, friendId);
 	}
 
 	private User buildUserFromRowSet(SqlRowSet rowSet) {

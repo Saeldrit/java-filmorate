@@ -21,9 +21,6 @@ public class SqlUserQuery implements SqlQuery {
 	@Value("${user.update-user}")
 	private String update;
 
-	@Value("${user.drop-table}")
-	private String dropTable;
-
 	@Value("${user.friends-by-user-id}")
 	private String friends;
 
@@ -79,11 +76,6 @@ public class SqlUserQuery implements SqlQuery {
 	@Override
 	public String like() {
 		return null;
-	}
-
-	@Override
-	public String dropTable() {
-		return dropTable;
 	}
 
 	@Override

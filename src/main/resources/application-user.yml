@@ -6,7 +6,6 @@ user:
   delete: "DELETE FROM users WHERE id = ?"
   update-user: "UPDATE users SET email = ?, name = ?, login = ?, birthday = ?
                WHERE id = ?"
-  drop-table: "DROP TABLE users"
   friends-by-user-id: "SELECT * FROM users 
                       WHERE id IN (
                       SELECT friend_id FROM friends WHERE user_id = ?)"

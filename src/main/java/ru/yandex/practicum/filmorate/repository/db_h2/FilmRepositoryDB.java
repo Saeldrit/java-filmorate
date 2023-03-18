@@ -1,8 +1,7 @@
 package ru.yandex.practicum.filmorate.repository.db_h2;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPA;
-import ru.yandex.practicum.filmorate.model.enumeration.for_films.MPAEnum;
 import ru.yandex.practicum.filmorate.repository.abstraction.AbstractFabricFilmRepository;
 import ru.yandex.practicum.filmorate.sql_query.SqlQuery;
 
@@ -28,18 +26,11 @@ import static java.util.Objects.requireNonNull;
 
 @Slf4j
 @Repository
+@RequiredArgsConstructor
 public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film> {
 
-	private final SqlQuery sqlQuery;
-
+	private final SqlQuery filmQuery;
 	private final JdbcTemplate jdbcTemplate;
-
-	@Autowired
-	public FilmRepositoryDB(@Qualifier("filmQuery") SqlQuery sqlQuery,
-							JdbcTemplate jdbcTemplate) {
-		this.sqlQuery = sqlQuery;
-		this.jdbcTemplate = jdbcTemplate;
-	}
 
 	@Override
 	public Film save(Film film) {
@@ -47,7 +38,7 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 
 		jdbcTemplate.update(connection -> {
 			PreparedStatement ps = connection.prepareStatement(
-					sqlQuery.insert(),
+					filmQuery.insert(),
 					new String[]{"id"});
 			ps.setString(1, film.getName());
 			ps.setString(2, film.getDescription());
@@ -70,7 +61,7 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 	public List<Film> bringBackAllValues() {
 		Map<Integer, Film> filmMap = new HashMap<>();
 
-		jdbcTemplate.query(sqlQuery.selectAllValues(), rs -> {
+		jdbcTemplate.query(filmQuery.selectAllValues(), rs -> {
 			int filmId = rs.getInt("id");
 
 			Film film = filmMap.get(filmId);
@@ -91,7 +82,7 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 
 	@Override
 	public Film findById(Integer id) {
-		return jdbcTemplate.query(sqlQuery.selectById(), new Object[]{id}, rs -> {
+		return jdbcTemplate.query(filmQuery.selectById(), new Object[]{id}, rs -> {
 			Film film = null;
 
 			while (rs.next()) {
@@ -114,8 +105,8 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 		Film film = findById(id);
 
 		if (film != null) {
-			jdbcTemplate.update(sqlQuery.deleteFromFilmGenre(), id);
-			jdbcTemplate.update(sqlQuery.deleteById(), id);
+			jdbcTemplate.update(filmQuery.deleteFromFilmGenre(), id);
+			jdbcTemplate.update(filmQuery.deleteById(), id);
 		}
 		return film;
 	}
@@ -126,7 +117,7 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 		genres.forEach(e -> System.out.println(e.getName()));
 		entity.setGenres(genres);
 
-		jdbcTemplate.update(sqlQuery.update()
+		jdbcTemplate.update(filmQuery.update()
 				, entity.getName()
 				, entity.getDescription()
 				, entity.getReleaseDate()
@@ -139,19 +130,14 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 	}
 
 	@Override
-	public void cleaner() {
-		jdbcTemplate.update(sqlQuery.dropTable());
-	}
-
-	@Override
 	public Film like(Integer filmId, Integer userId) {
-		jdbcTemplate.update(sqlQuery.like(), filmId, userId);
+		jdbcTemplate.update(filmQuery.like(), filmId, userId);
 		return findById(filmId);
 	}
 
 	@Override
 	public Film removeLike(Integer filmId, Integer userId) {
-		jdbcTemplate.update(sqlQuery.removeLike(), filmId, userId);
+		jdbcTemplate.update(filmQuery.removeLike(), filmId, userId);
 		return findById(filmId);
 	}
 
@@ -159,7 +145,7 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 	public List<Film> returnPopularFilms(Integer count) {
 		Map<Integer, Film> filmMap = new HashMap<>();
 
-		jdbcTemplate.query(sqlQuery.selectPopular(), new Object[]{count}, rs -> {
+		jdbcTemplate.query(filmQuery.selectPopular(), new Object[]{count}, rs -> {
 			int id = rs.getInt("id");
 			Film film = filmMap.get(id);
 
@@ -173,7 +159,7 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 
 	@Override
 	public MPA MPAById(Integer id) {
-		return jdbcTemplate.query(sqlQuery.selectMPA(), new Object[]{id}, rs -> {
+		return jdbcTemplate.query(filmQuery.selectMPA(), new Object[]{id}, rs -> {
 			MPA mpa = null;
 
 			if (rs.next()) {
@@ -185,7 +171,7 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 
 	@Override
 	public Genre genreById(Integer id) {
-		return jdbcTemplate.query(sqlQuery.selectGenre(), new Object[]{id}, rs -> {
+		return jdbcTemplate.query(filmQuery.selectGenre(), new Object[]{id}, rs -> {
 			Genre genre = null;
 
 			if (rs.next()) {
@@ -199,7 +185,7 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 	public List<MPA> listMPA() {
 		Map<Integer, MPA> mpaMap = new HashMap<>();
 
-		jdbcTemplate.query(sqlQuery.selectListMPA(), rs -> {
+		jdbcTemplate.query(filmQuery.selectListMPA(), rs -> {
 			int mpaId = rs.getInt("id");
 
 			MPA mpa = mpaMap.get(mpaId);
@@ -216,7 +202,7 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 	public List<Genre> listGenres() {
 		Map<Integer, Genre> genreMap = new HashMap<>();
 
-		jdbcTemplate.query(sqlQuery.selectListGenres(), rs -> {
+		jdbcTemplate.query(filmQuery.selectListGenres(), rs -> {
 			int genreId = rs.getInt("id");
 
 			Genre genre = genreMap.get(genreId);
@@ -244,7 +230,6 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 	}
 
 	private Film collectFilm(ResultSet rs) throws SQLException {
-		int mpaId = rs.getInt("mpa_id");
 		return Film.builder()
 				.id(rs.getInt("id"))
 				.name(rs.getString("name"))
@@ -252,7 +237,7 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 				.releaseDate(rs.getDate("release_date").toLocalDate())
 				.duration(rs.getLong("duration"))
 				.rate(rs.getInt("rate"))
-				.mpa(new MPA(mpaId, MPAEnum.values()[mpaId - 1].getTitle()))
+				.mpa(MPAById(rs.getInt("mpa_id")))
 				.genres(new ArrayList<>())
 				.build();
 	}
@@ -260,7 +245,7 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 	private void saveGenresForFilm(Film film) {
 		for (Genre genre : film.getGenres()) {
 			try {
-				jdbcTemplate.update(sqlQuery.insertGenreFilmId(),
+				jdbcTemplate.update(filmQuery.insertGenreFilmId(),
 						film.getId(), genre.getId());
 			} catch (DataIntegrityViolationException e) {
 				log.warn("Duplicate pair film.id / genre.id {}, {}", film.getId(), genre.getId());
@@ -269,13 +254,13 @@ public class FilmRepositoryDB extends AbstractFabricFilmRepository<Integer, Film
 	}
 
 	private List<Genre> updateGenresForFilm(Film film) {
-		jdbcTemplate.update(sqlQuery.deleteFromFilmGenre(), film.getId());
+		jdbcTemplate.update(filmQuery.deleteFromFilmGenre(), film.getId());
 
 		saveGenresForFilm(film);
 
 		Map<Integer, Genre> genreMap = new HashMap<>();
 
-		jdbcTemplate.query(sqlQuery.selectGenresByFilmId(), new Object[]{film.getId()}, rs -> {
+		jdbcTemplate.query(filmQuery.selectGenresByFilmId(), new Object[]{film.getId()}, rs -> {
 			int genreId = rs.getInt("id");
 
 			Genre genre = genreMap.get(genreId);

@@ -21,7 +21,6 @@ film:
            GROUP BY films.id 
            ORDER BY likes_count DESC LIMIT ?"
   insert-genre-film-id: "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)"
-  drop-table: "DROP TABLE films"
   insert-mpa: "INSERT INTO mpa VALUES (?, ?)"
   insert-genres: "INSERT INTO genres VALUES (?, ?)"
   delete-film-genre: "DELETE FROM film_genre WHERE film_id = ?"

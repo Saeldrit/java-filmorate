@@ -1,0 +1,31 @@
+film:
+  insert-film: "INSERT INTO films (name, description, release_date, duration, rate, mpa_id) VALUES (?, ?, ?, ?, ?, ?)"
+  select-film-by-id: "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rate, f.mpa_id,
+                      g.id as genre_id, g.name as genre_name
+                      FROM films f
+                      LEFT JOIN film_genre fg ON fg.film_id = f.id
+                      LEFT JOIN genres g ON fg.genre_id = g.id
+                      WHERE f.id = ?"
+  select-films: "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rate, f.mpa_id,
+                  g.id as genre_id, g.name as genre_name
+                  FROM films f
+                  LEFT JOIN film_genre fg ON fg.film_id = f.id
+                  LEFT JOIN genres g ON fg.genre_id = g.id"
+  delete-by-id: "DELETE FROM films WHERE id = ?"
+  update-film: "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, rate = ?, mpa_id = ? WHERE id = ?"
+  like: "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)"
+  remove-like: "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?"
+  select-popular: "SELECT films.*, COUNT(film_likes.user_id) AS likes_count 
+           FROM films 
+           LEFT OUTER JOIN film_likes ON films.id = film_likes.film_id 
+           GROUP BY films.id 
+           ORDER BY likes_count DESC LIMIT ?"
+  insert-genre-film-id: "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)"
+  insert-mpa: "INSERT INTO mpa VALUES (?, ?)"
+  insert-genres: "INSERT INTO genres VALUES (?, ?)"
+  delete-film-genre: "DELETE FROM film_genre WHERE film_id = ?"
+  select-mpa: "SELECT * FROM mpa WHERE id = ?"
+  select-list-mpa: "SELECT * FROM mpa"
+  select-genre: "SELECT * FROM genres WHERE id = ?"
+  select-list-genres: "SELECT * FROM genres"
+  select-genres-by-film-id: "SELECT * FROM genres WHERE id IN (SELECT genre_id FROM film_genre WHERE film_id = ? GROUP BY genre_id)"
